@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .search-box {
+            display: flex;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .search-box input {
+            flex: 1;
+            padding: 10px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 4px 0 0 4px;
+            outline: none;
+        }
+        .search-box button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            background-color: #ff6f61;
+            color: #ffffff;
+            cursor: pointer;
+            outline: none;
+        }
+        .search-box button:hover {
+            background-color: #ff5646;
+        }
+        .main-div {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+        .img-div {
+            border: 1px solid #333;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            background-color: #1e1e1e;
+        }
+        .img-div img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        @media (min-width: 600px) {
+            .img-div {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                text-align: left;
+            }
+            .img-div img {
+                width: 150px;
+                height: auto;
+                margin-right: 20px;
+            }
+            .img-div div {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="search-box">
+            <input type="text" class="inp" placeholder="Enter Movie Title">
+            <button class="btn">Search</button>
+        </div>
+        <div class="main-div"></div>
+    </div>
+
+    <script>
+        let mainDiv = document.querySelector(".main-div");
+        let input = document.querySelector(".inp");
+        let btn = document.querySelector(".btn");
+
+        async function getMovie() {
+            let value = input.value.trim();
+            if (value === '') {
+                return;
+            }
+
+            let url = `https://api.themoviedb.org/3/search/movie?api_key=7fce584c67df4acd16ec7236193ad4e9&query=${encodeURIComponent(value)}`;
+            let response = await fetch(url);
+            let data = await response.json();
+            console.log(response);
+            console.log(data);
+
+            mainDiv.innerHTML = '';
+
+            if (data.results.length === 0) {
+                mainDiv.innerHTML = '<p>No results found</p>';
+                return;
+            }
+
+            let movie = data.results[0];
+            let movieUrl = `https://api.themoviedb.org/3/movie/${movie.id}?api_key=7fce584c67df4acd16ec7236193ad4e9`;
+            let movieResponse = await fetch(movieUrl);
+            let movieData = await movieResponse.json();
+            console.log(movieData);
+
+            let imgDiv = document.createElement("div");
+            imgDiv.className = "img-div";
+
+            if (movieData.backdrop_path) {
+                let image = document.createElement("img");
+                image.src = `https://image.tmdb.org/t/p/w500${movieData.backdrop_path}`;
+                imgDiv.append(image);
+            }
+
+            let infoDiv = document.createElement("div");
+
+            let title = document.createElement("h2");
+            title.innerText = movieData.title;
+            infoDiv.append(title);
+
+            let genres = document.createElement("p");
+            if (movieData.genres) {
+                genres.innerText = `Genres: ${movieData.genres.map(genre => genre.name).join(', ')}`;
+            } else {
+                genres.innerText = 'Genres: Not available';
+            }
+            infoDiv.append(genres);
+
+            let countries = document.createElement("p");
+            if (movieData.production_countries) {
+                countries.innerText = `Countries: ${movieData.production_countries.map(country => country.name).join(', ')}`;
+            } else {
+                countries.innerText = 'Countries: Not available';
+            }
+            infoDiv.append(countries);
+
+            let over = document.createElement("p");
+            over.innerText = `Storyline: ${movieData.overview}`;
+            over.style.fontSize = '1rem';
+            infoDiv.append(over);
+
+            let lang = document.createElement("p");
+            lang.innerText = `Language: ${movieData.original_language}`;
+            lang.style.fontSize = '1rem';
+            infoDiv.append(lang);
+
+            let release = document.createElement("p");
+            release.innerText = `Release Date: ${movieData.release_date}`;
+            release.style.fontSize = '1rem';
+            infoDiv.append(release);
+
+            imgDiv.append(infoDiv);
+            mainDiv.append(imgDiv);
+        }
+
+        btn.addEventListener("click", getMovie);
+    </script>
+</body>
+</html>
